@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交友盲盒 - 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a1a;--bg2:#12122a;--card:rgba(255,255,255,0.04);
+  --text:rgba(255,255,255,0.7);--text2:rgba(255,255,255,0.4);
+  --purple:#c084fc;--purple2:#7b2ff7;--pink:#f472b6;--blue:#60a5fa;
+  --green:#4ade80;--gold:#fbbf24;--red:#f87171;
+  --radius:16px;--radius-sm:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,sans-serif;min-height:100vh}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+#login .card{width:400px;text-align:center;padding:60px 40px}
+#login h1{background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:36px;margin-bottom:8px}
+#login .subtitle{color:var(--text2);margin-bottom:40px;font-size:14px}
+#login input{width:100%;padding:14px 20px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);background:rgba(255,255,255,0.05);color:#fff;font-size:16px;margin-bottom:20px;outline:none}
+#login input:focus{border-color:var(--purple)}
+#login button{width:100%;padding:14px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--purple2),var(--purple));color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+#login button:hover{opacity:0.9}
+.login-glow{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(123,47,247,.12),transparent 70%);pointer-events:none;z-index:0}
+.card{background:var(--card);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius)}
+#layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:30px 0}
+.sidebar .logo{padding:0 24px 30px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:16px}
+.sidebar .logo h2{background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:20px}
+.sidebar .logo span{font-size:12px;color:var(--text2)}
+.nav-item{padding:14px 24px;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:15px;color:var(--text2);transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,0.03);color:var(--text)}
+.nav-item.active{background:rgba(192,132,252,0.08);color:var(--purple);border-left-color:var(--purple)}
+.nav-icon{font-size:18px}
+.main{flex:1;padding:30px 40px;overflow-y:auto}
+.page-title{font-size:28px;font-weight:700;color:#fff;margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:30px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:30px}
+.stat-card{padding:24px;border-radius:var(--radius);background:var(--card);border:1px solid rgba(255,255,255,0.06)}
+.stat-card .label{font-size:13px;color:var(--text2);margin-bottom:10px}
+.stat-card .value{font-size:32px;font-weight:700;color:#fff}
+.stat-card .change{font-size:12px;margin-top:6px}
+.stat-card.purple .value{color:var(--purple)}
+.stat-card.pink .value{color:var(--pink)}
+.stat-card.blue .value{color:var(--blue)}
+.stat-card.green .value{color:var(--green)}
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:10px 16px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--purple)}
+.toolbar button{padding:10px 20px;border:none;border-radius:50px;background:var(--purple2);color:#fff;font-size:14px;cursor:pointer}
+.toolbar button:hover{opacity:0.85}
+.toolbar .search{min-width:200px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{padding:14px 16px;text-align:left;font-weight:600;color:var(--text2);font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.06)}
+tbody td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text)}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+.table-card{border-radius:var(--radius);background:var(--card);border:1px solid rgba(255,255,255,0.06);overflow:hidden}
+.pagination{display:flex;justify-content:center;gap:8px;padding:20px}
+.pagination button{padding:8px 16px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);cursor:pointer;font-size:14px}
+.pagination button.active{background:var(--purple2);border-color:var(--purple2);color:#fff}
+.pagination button:disabled{opacity:0.3;cursor:default}
+.empty{padding:60px;text-align:center;color:var(--text2);font-size:15px}
+.settings-grid{display:grid;gap:20px;max-width:600px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:1px}
+.field input,.field select{padding:12px 16px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-sm);background:rgba(255,255,255,0.05);color:#fff;font-size:15px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--purple)}
+.field .hint{font-size:12px;color:var(--text2)}
+.setting-card{padding:24px;border-radius:var(--radius);background:var(--card);border:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center}
+.setting-info h3{font-size:16px;color:#fff;margin-bottom:4px}
+.setting-info p{font-size:13px;color:var(--text2)}
+.switch{position:relative;width:52px;height:28px;cursor:pointer}
+.switch input{display:none}
+.switch .slider{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:28px;transition:.3s}
+.switch .slider:before{content:'';position:absolute;width:22px;height:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.switch input:checked+.slider{background:var(--purple2)}
+.switch input:checked+.slider:before{transform:translateX(24px)}
+.btn-purple{padding:14px 32px;border:none;border-radius:50px;background:linear-gradient(135deg,var(--purple2),var(--purple));color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+.btn-purple:hover{opacity:0.9}
+.toast{position:fixed;top:24px;right:24px;padding:14px 24px;border-radius:var(--radius-sm);color:#fff;font-size:14px;z-index:999;animation:slideIn .3s}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@media(max-width:768px){.sidebar{display:none}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:20px}}
+</style>
+</head>
+<body>
+<div class="login-glow"></div>
+
+<div id="login">
+  <div class="card">
+    <h1>交友盲盒</h1>
+    <p class="subtitle">管理后台</p>
+    <input type="text" id="oidInput" placeholder="请输入管理员 OpenID">
+    <button onclick="doLogin()">进入后台</button>
+  </div>
+</div>
+
+<div id="layout" style="display:none">
+  <aside class="sidebar">
+    <div class="logo"><h2>交友盲盒</h2><span>管理后台</span></div>
+    <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard',this)">
+      <span class="nav-icon">&#9788;</span> 仪表盘
+    </div>
+    <div class="nav-item" data-page="users" onclick="navTo('users',this)">
+      <span class="nav-icon">&#9787;</span> 用户管理
+    </div>
+    <div class="nav-item" data-page="payments" onclick="navTo('payments',this)">
+      <span class="nav-icon">&#9733;</span> 支付记录
+    </div>
+    <div class="nav-item" data-page="settings" onclick="navTo('settings',this)">
+      <span class="nav-icon">&#9881;</span> 系统设置
+    </div>
+  </aside>
+  <main class="main" id="mainContent"></main>
+</div>
+
+<script>
+var API = '';
+var ADMIN_OID = '';
+
+function api(path, opts) {
+  opts = opts || {};
+  return fetch(API + path, {
+    method: opts.method || 'GET',
+    headers: Object.assign({'Content-Type':'application/json','X-Openid':ADMIN_OID}, opts.headers),
+    body: opts.data ? JSON.stringify(opts.data) : undefined
+  }).then(r => r.json()).then(d => { if (d.error) throw new Error(d.error); return d; });
+}
+
+function doLogin() {
+  var oid = document.getElementById('oidInput').value.trim();
+  if (!oid) return toast('请输入 OpenID', 'error');
+  ADMIN_OID = oid;
+  api('/api/admin/dashboard').then(function(d) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('layout').style.display = 'flex';
+    renderDashboard(d);
+  }).catch(function(e) {
+    ADMIN_OID = '';
+    toast(e.message || '权限不足或网络错误', 'error');
+  });
+}
+
+function navTo(page, el) {
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  el.classList.add('active');
+  if (page === 'dashboard') api('/api/admin/dashboard').then(renderDashboard).catch(function(e){ toast(e.message,'error'); });
+  if (page === 'users') loadUsers();
+  if (page === 'payments') loadPayments();
+  if (page === 'settings') loadSettings();
+}
+
+function renderDashboard(d) {
+  document.getElementById('mainContent').innerHTML =
+    '<div class="page-title">仪表盘</div><div class="page-sub">今日数据概览</div>' +
+    '<div class="stats">' +
+      '<div class="stat-card"><div class="label">总用户数</div><div class="value" style="color:var(--purple)">' + d.total_users + '</div></div>' +
+      '<div class="stat-card"><div class="label">今日新增</div><div class="value" style="color:var(--pink)">' + d.today_new + '</div></div>' +
+      '<div class="stat-card"><div class="label">今日支付笔数</div><div class="value" style="color:var(--blue)">' + d.today_payments + '</div></div>' +
+      '<div class="stat-card"><div class="label">今日收入 (分)</div><div class="value" style="color:var(--green)">' + (d.today_income || 0) + '</div></div>' +
+    '</div>';
+}
+
+function loadUsers(page) {
+  page = page || 1;
+  api('/api/admin/users?page=' + page + '&pageSize=20').then(function(d) {
+    var h = '<div class="page-title">用户管理</div><div class="page-sub">共 ' + d.total + ' 个用户</div>' +
+      '<div class="table-card"><table><thead><tr>' +
+      '<th>ID</th><th>昵称</th><th>头像</th><th>星座</th><th>支付次数</th><th>注册时间</th>' +
+      '</tr></thead><tbody>';
+    if (d.list.length === 0) h += '<tr><td colspan="6" class="empty">暂无数据</td></tr>';
+    d.list.forEach(function(u) {
+      h += '<tr><td>' + u.id + '</td><td>' + (u.nickname || '-') + '</td><td>' + (u.avatar_url ? '<img src="'+u.avatar_url+'" style="width:32px;height:32px;border-radius:50%">' : '-') + '</td><td>' + (u.zodiac || '-') + '</td><td>' + u.payment_count + '</td><td>' + (u.created_at || '') + '</td></tr>';
+    });
+    h += '</tbody></table></div>' + paginationHtml(d.page, Math.ceil(d.total/d.pageSize), loadUsers);
+    document.getElementById('mainContent').innerHTML = h;
+  });
+}
+
+function loadPayments(page) {
+  page = page || 1;
+  var sd = document.getElementById('psd') ? document.getElementById('psd').value : '';
+  var ed = document.getElementById('ped') ? document.getElementById('ped').value : '';
+  var qs = 'page=' + page + '&pageSize=20';
+  if (sd) qs += '&start_date=' + sd;
+  if (ed) qs += '&end_date=' + ed;
+  api('/api/admin/payments?' + qs).then(function(d) {
+    var h = '<div class="page-title">支付记录</div><div class="page-sub">共 ' + d.total + ' 笔，总收入 ' + (d.total_income || 0) + ' 分</div>' +
+      '<div class="toolbar"><input class="search" id="psd" placeholder="开始日期 YYYY-MM-DD" value="'+(sd)+'"><input class="search" id="ped" placeholder="结束日期 YYYY-MM-DD" value="'+(ed)+'"><button onclick="loadPayments(1)">筛选</button></div>' +
+      '<div class="table-card"><table><thead><tr><th>ID</th><th>用户</th><th>金额(分)</th><th>交易号</th><th>支付时间</th></tr></thead><tbody>';
+    if (d.list.length === 0) h += '<tr><td colspan="5" class="empty">暂无数据</td></tr>';
+    d.list.forEach(function(p) {
+      h += '<tr><td>' + p.id + '</td><td>' + (p.nickname || '用户'+p.user_id) + '</td><td style="color:var(--green);font-weight:600">' + p.amount + '</td><td style="font-size:12px;color:var(--text2)">' + (p.transaction_id || '-') + '</td><td>' + (p.paid_at || '') + '</td></tr>';
+    });
+    h += '</tbody></table></div>' + paginationHtml(d.page, Math.ceil(d.total/d.pageSize), loadPayments);
+    document.getElementById('mainContent').innerHTML = h;
+  });
+}
+
+function loadSettings() {
+  api('/api/config').then(function(config) {
+    var h = '<div class="page-title">系统设置</div><div class="page-sub">修改配置实时生效</div><div class="settings-grid">';
+    h += '<div class="setting-card"><div class="setting-info"><h3>支付金额 (分)</h3><p>用户解锁匹配需支付的金额，1元=100分</p></div><div><input type="number" id="cfg_payment_amount" value="'+(config.payment_amount||'500')+'" style="width:100px;padding:8px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#fff;text-align:center;font-size:15px"></div></div>';
+    h += '<div class="setting-card"><div class="setting-info"><h3>审核模式</h3><p>开启后展示静态示例，隐藏付费入口，用于过审</p></div><label class="switch"><input type="checkbox" id="cfg_review_mode" '+(config.review_mode==='1'?'checked':'')+'><span class="slider"></span></label></div>';
+    h += '<div class="setting-card"><div class="setting-info"><h3>企业主体</h3><p>enterprise 使用微信支付，personal 自动完成</p></div><select id="cfg_business_type" style="padding:8px 16px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#fff;font-size:14px"><option value="personal" '+(config.business_type==='personal'?'selected':'')+'>个人</option><option value="enterprise" '+(config.business_type==='enterprise'?'selected':'')+'>企业</option></select></div>';
+    h += '</div><div style="margin-top:24px"><button class="btn-purple" onclick="saveSettings()">保存设置</button></div>';
+    document.getElementById('mainContent').innerHTML = h;
+  });
+}
+
+function saveSettings() {
+  api('/api/config', {
+    method: 'PUT',
+    data: {
+      payment_amount: document.getElementById('cfg_payment_amount').value,
+      review_mode: document.getElementById('cfg_review_mode').checked ? '1' : '0',
+      business_type: document.getElementById('cfg_business_type').value
+    }
+  }).then(function(){ toast('设置已保存','success'); }).catch(function(e){ toast(e.message,'error'); });
+}
+
+function paginationHtml(page, total, fn) {
+  var h = '<div class="pagination">';
+  h += '<button ' + (page <= 1 ? 'disabled' : 'onclick="' + fn.name + '(' + (page-1) + ')"') + '>上一页</button>';
+  for (var i = Math.max(1,page-2); i <= Math.min(total,page+2); i++) {
+    h += '<button class="' + (i===page?'active':'') + '" onclick="' + fn.name + '(' + i + ')">' + i + '</button>';
+  }
+  h += '<button ' + (page >= total ? 'disabled' : 'onclick="' + fn.name + '(' + (page+1) + ')"') + '>下一页</button>';
+  h += '</div>';
+  return h;
+}
+
+function toast(msg, type) {
+  var t = document.createElement('div');
+  t.className = 'toast ' + (type || 'success');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 3000);
+}
+
+// On page load, check if on same domain (use relative API)
+API = location.origin === 'https://3001-3592b7f1da994565.monkeycode-ai.online' ? '' : 'https://3001-3592b7f1da994565.monkeycode-ai.online';
+</script>
+</body>
+</html>
