@@ -64,7 +64,13 @@ function initDatabase() {
   const insertConfig = db.prepare('INSERT OR IGNORE INTO configs (key, value) VALUES (?, ?)');
   insertConfig.run('payment_amount', '199');
   insertConfig.run('review_mode', '0');
-  insertConfig.run('business_type', 'non_enterprise');
+  insertConfig.run('business_type', 'personal');
+
+  const adminOpenids = (process.env.ADMIN_OPENIDS || 'test_openid_001').split(',').map(s => s.trim()).filter(Boolean);
+  const upsertUser = db.prepare('INSERT OR IGNORE INTO users (openid, nickname, is_admin) VALUES (?, ?, 1)');
+  for (const oid of adminOpenids) {
+    upsertUser.run(oid, '管理员');
+  }
 
   console.log('Database initialized successfully');
 }
